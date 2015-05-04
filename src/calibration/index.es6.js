@@ -57,14 +57,14 @@ class CalibrationClient extends app.clientSide.Performance {
     this.display.audio = {};
     this.display.audio.active = new app.dom.Toggle( {
       DOMOrigin: this.view,
-      DOMCLass: 'audio-active',
+      DOMClass: 'audio-active',
       text: 'Audio',
       setter: (value) => { this.audio.active = value; },
       getter: () => { return this.audio.active; }
     } );
     this.display.audio.output = new app.dom.Select( {
       DOMOrigin: this.view,
-      DOMCLass: 'audio-output',
+      DOMClass: 'audio-output',
       options: this.audio.outputs,
       setter: (value) => {
         this.audio.output = value;
@@ -132,7 +132,10 @@ class CalibrationClient extends app.clientSide.Performance {
     this.display.validationElement = app.dom.createGlobalValidationElement( {
       DOMOrigin: this.view,
       text: 'Validate calibration',
-      validation: () => { this.save(); }
+      validation: () => {
+        this.save();
+        app.dom.updateGlobalValidationElement(this.view, true, false);
+      }
     } );
 
     this.display.restoreElement = app.dom.createRestoreElement( {
@@ -254,6 +257,10 @@ class CalibrationClient extends app.clientSide.Performance {
     }
 
     if(this.navigation === 'validation') {
+      const ready = (this.syncStatus === 'sync'
+                     && this.networkStatus === 'online');
+      app.dom.updateGlobalValidationElement(this.view, false, ready);
+
       this.audio.type = 'click';
       this.display.validationElement.style.display = '';
     } else {

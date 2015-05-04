@@ -400,6 +400,12 @@ dom.createGlobalValidationElement = function (params) {
   element.classList.add('global-validation');
   origin.appendChild(element);
 
+  const child = document.createElement('div');
+  child.classList.add('done');
+  child.innerHTML = 'Thank you';
+  child.style.display = 'none';
+  element.appendChild(child);
+
   dom.createValidationElement( {
     DOMOrigin: element,
     text: 'Validate calibration',
@@ -407,6 +413,16 @@ dom.createGlobalValidationElement = function (params) {
   } );
 
   return element;
+};
+
+dom.updateGlobalValidationElement = function (origin, done = false, ready = false) {
+  const element = origin.querySelector('.global-validation');
+  const validation = element.querySelector('.validate');
+
+  validation.style.display = (ready && !done ? '' : 'none');
+
+  const text = element.querySelector('.done');
+  text.style.display = (done ? '' : 'none');
 };
 
 dom.createRestoreElement = function (params) {
