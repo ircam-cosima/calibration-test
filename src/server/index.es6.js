@@ -47,6 +47,7 @@ const serverSide = require('soundworks/server');
 const server = serverSide.server;
 const sync = new serverSide.Sync();
 
+const string = require('../common/string');
 
 class CalibrationServerPerformance extends serverSide.Performance {
   constructor() {
@@ -63,6 +64,8 @@ class CalibrationServerPerformance extends serverSide.Performance {
     CalibrationServerPerformance.clientParametersRequestName =
       CalibrationServerPerformance.clientParametersName
       + '-request';
+
+    this.levenshtein = new string.Levenshtein();
 
     // click
     this.active = true; // run by default
@@ -199,10 +202,17 @@ class CalibrationServerPerformance extends serverSide.Performance {
       CalibrationServerPerformance.clientParametersRequestName,
       (params) => {
 
-        if(typeof persistentData !== 'undefined') {
-          const data = persistentData[params.userAgent];
-          if(typeof data !== 'undefined') {
+        if(typeof persistentData !== 'undefined'
+           && typeof params !== 'undefined'
+           && typeof params.userAgent !== 'undefined') {
+          const closest = this.levenshtein.closestKey(persistentData,
+                                                      params.userAgent);
 
+          debug('%s -> %s (%s)',
+                params.userAgent, closest.key, closest.distance);
+          // upper bound on closest.distance?
+          const data = persistentData[closest.key];
+          if(typeof data !== 'undefined') {
             let calibration = {};
             let sendCalibration = false;
             if(typeof data.audio !== 'undefined') {
