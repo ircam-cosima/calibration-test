@@ -216,6 +216,7 @@ class CalibrationClient extends app.clientSide.Performance {
       this.restore(params);
     });
 
+    this.restore();
   }
 
   navigationUpdate(navigation) {
