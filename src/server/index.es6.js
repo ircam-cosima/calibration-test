@@ -111,7 +111,6 @@ class CalibrationServerPerformance extends serverSide.Performance {
     const params = this.getServerParameters();
 
     if(typeof client === 'undefined') {
-      server.broadcast('control', name, params);
       server.broadcast('player', name, params);
     } else {
       client.send(name, params);
@@ -302,4 +301,3 @@ debug('launch server on port %s', port);
 
 server.start(app, dir, port);
 server.map('player', sync, performance);
-server.map('control', sync, performance);

@@ -96,8 +96,8 @@ class CalibrationClient extends app.clientSide.Performance {
       setter: (value) => {
         // compensation is the opposite of intrinsic vale
         // (compensation in the interface; intrisic in this.audio)
-        // interface is in milliseconds
-        this.audio[this.audio.output].delay = -value * 1e-3;
+        // interface is in milliseconds, 1 digit precision
+        this.audio[this.audio.output].delay = 0.1 * Math.round(10 * -value) * 1e-3;
       },
       getter: () => {
         // compensation is the opposite of intrinsic vale
@@ -115,8 +115,8 @@ class CalibrationClient extends app.clientSide.Performance {
       setter: (value) => {
         // compensation is the opposite of intrinsic vale
         // (compensation in the interface; intrisic in this.audio)
-        // interface is in dB
-        this.audio[this.audio.output].gain = -value;
+        // interface is in dB, 1 digit precision
+        this.audio[this.audio.output].gain = 0.1 * Math.round(10 * -value);
       },
       getter: () => {
         // compensation is the opposite of intrinsic vale

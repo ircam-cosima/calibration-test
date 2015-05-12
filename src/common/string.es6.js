@@ -59,7 +59,7 @@ string.Levenshtein = class {
   }
 
   /**
-   * Find the key in a object, which is the closest to the query,
+   * Find the key in an object, which is the closest to the query,
    * according to their Levenshtein distance.
    *
    * @see {@linkcode string.Levenshtein~distance}
