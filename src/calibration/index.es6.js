@@ -27,27 +27,31 @@ if(app.localStorage.enabled) {
 // ('player' clients connect via the root URL)
 app.client.init('player');
 
-class CalibrationClient extends app.clientSide.Performance {
+class CalibrationClientPerformance extends app.clientSide.Performance {
   /**
    * @constructs CalibrationClient
-   * @param {Object} sync
-   * @param {Object} options
+   * @param {Object} options passed to clientSide.Performance
    */
-  constructor(sync, options = {}) {
+  constructor(options = {}) {
     super(options);
+    const that = this;
 
-    this.sync = sync;
+    this.calibration = new app.clientSide.Calibration( {
+      updateFunction: () => { that.calibrationUpdated(); }
+    });
+    this.sync = new app.clientSide.Sync();
     this.syncStatus = 'new';
-    this.synth = new app.audio.Synth(sync);
+    this.synth = new app.audio.Synth(this.sync);
 
     this.userAgent = app.platform.ua;
 
     this.audio = {};
     this.audio.active = true;
     this.audio.type = 'clack';
-    this.audio.outputs = ['internal', 'external'];
-    this.audio.output = this.audio.outputs[0];
-    this.audio[this.audio.output] = {};
+    this.audio.compensation = {
+      delay: 0,
+      gain: 0
+    };
 
     this.network = {};
     this.networkStatus = 'offline';
@@ -59,22 +63,8 @@ class CalibrationClient extends app.clientSide.Performance {
       DOMOrigin: this.view,
       DOMClass: 'audio-active',
       text: 'Audio',
-      setter: (value) => { this.audio.active = value; },
-      getter: () => { return this.audio.active; }
-    } );
-    this.display.audio.output = new app.dom.Select( {
-      DOMOrigin: this.view,
-      DOMClass: 'audio-output',
-      options: this.audio.outputs,
-      setter: (value) => {
-        this.audio.output = value;
-        if(typeof this.audio[this.audio.output] === 'undefined') {
-          this.audio[this.audio.output] = {};
-        }
-        this.display.delayCalibration.update();
-        this.display.gainCalibration.update();
-      },
-      getter: () => { return this.audio.output; }
+      setter: (value) => { that.audio.active = value; },
+      getter: () => { return that.audio.active; }
     } );
 
     this.display.syncMinimalElement = app.dom.createSyncMinimalElement(this.view);
@@ -88,7 +78,7 @@ class CalibrationClient extends app.clientSide.Performance {
 
     this.display.infoElement = app.dom.createInfoElement( {
       DOMOrigin: this.view,
-      validation: () => { this.navigationUpdate('delay'); }
+      validation: () => { that.navigationUpdate('delay'); }
     } );
 
     this.display.delayCalibration = new app.dom.DelayCalibration( {
@@ -97,17 +87,15 @@ class CalibrationClient extends app.clientSide.Performance {
         // compensation is the opposite of intrinsic vale
         // (compensation in the interface; intrisic in this.audio)
         // interface is in milliseconds, 1 digit precision
-        this.audio[this.audio.output].delay = 0.1 * Math.round(10 * -value) * 1e-3;
+        that.audio.compensation.delay = 0.1 * Math.round(10 * -value) * 1e-3;
       },
       getter: () => {
         // compensation is the opposite of intrinsic vale
         // (compensation in the interface; intrisic in this.audio)
         // interface is in milliseconds
-        return (typeof this.audio[this.audio.output].delay !== 'undefined'
-                ? -this.audio[this.audio.output].delay * 1e3
-                : 0);
+        return -that.audio.compensation.delay * 1e3;
       },
-      validation: () => { this.navigationUpdate('gain'); }
+      validation: () => { that.navigationUpdate('gain'); }
     } );
 
     this.display.gainCalibration = new app.dom.GainCalibration( {
@@ -116,25 +104,22 @@ class CalibrationClient extends app.clientSide.Performance {
         // compensation is the opposite of intrinsic vale
         // (compensation in the interface; intrisic in this.audio)
         // interface is in dB, 1 digit precision
-        this.audio[this.audio.output].gain = 0.1 * Math.round(10 * -value);
+        that.audio.compensation.gain = 0.1 * Math.round(10 * -value);
       },
       getter: () => {
         // compensation is the opposite of intrinsic vale
         // (compensation in the interface; intrisic in this.audio)
         // interface is in dB
-        return (typeof this.audio[this.audio.output].gain !== 'undefined'
-                ? -this.audio[this.audio.output].gain
-                : 0);
+        return -that.audio.compensation.gain;
       },
-      validation: () => { this.navigationUpdate('validation'); }
+      validation: () => { that.navigationUpdate('validation'); }
     } );
 
     this.display.validationElement = app.dom.createGlobalValidationElement( {
       DOMOrigin: this.view,
       text: 'Validate calibration',
       validation: () => {
-        this.save();
-        app.dom.updateGlobalValidationElement(this.view, true, false);
+        that.save();
       }
     } );
 
@@ -142,8 +127,8 @@ class CalibrationClient extends app.clientSide.Performance {
       DOMOrigin: this.view,
       text: 'Restore calibration',
       validation: () => {
-        this.restore();
-        this.navigationUpdate('delay');
+        that.load();
+        that.navigationUpdate('delay');
       }
     } );
 
@@ -153,43 +138,43 @@ class CalibrationClient extends app.clientSide.Performance {
       options: ['details', 'info', 'delay', 'gain',
                 'validation', 'restore'],
       value: 'info',
-      setter: (value) => { this.navigationUpdate(value); },
-      getter: () => { return this.navigation; }
+      setter: (value) => { that.navigationUpdate(value); },
+      getter: () => { return that.navigation; }
     } );
 
     this.sync.on('sync:status', (report) => {
       if(typeof report !== 'undefined') {
-        app.dom.updateSyncMinimalElement(this.display.syncMinimalElement, report);
-        app.dom.updateSyncReportElement(this.display.syncReportElement, report);
+        app.dom.updateSyncMinimalElement(that.display.syncMinimalElement, report);
+        app.dom.updateSyncReportElement(that.display.syncReportElement, report);
 
         if(typeof report.status !== 'undefined') {
-          this.syncStatus = report.status;
+          that.syncStatus = report.status;
         }
 
         if(typeof report.connection !== 'undefined') {
-          this.networkStatus = report.connection;
+          that.networkStatus = report.connection;
         }
 
         if(typeof report.travelDuration !== 'undefined') {
-          this.network.delay = report.travelDuration;
+          that.network.delay = report.travelDuration;
         }
         if(typeof report.travelDurationMax !== 'undefined') {
-          this.network.delayMax = report.travelDurationMax;
+          that.network.delayMax = report.travelDurationMax;
         }
 
-        const ready = (this.syncStatus === 'sync'
-                       && this.networkStatus === 'online');
-        app.dom.updateValidationElements(this.view, ready);
+        const ready = (that.syncStatus === 'sync'
+                       && that.networkStatus === 'online');
+        app.dom.updateValidationElements(that.view, ready);
       }
     });
 
     app.client.receive('performance:click', (params) => {
-      if( (this.syncStatus === 'sync' || this.syncStatus === 'training')
-          && this.audio.active && typeof params !== 'undefined') {
+      if( (that.syncStatus === 'sync' || that.syncStatus === 'training')
+          && that.audio.active && typeof params !== 'undefined') {
 
-        let audioType = this.audio.type;
+        let audioType = that.audio.type;
         let duration; // undefined is fine
-        const timeLeft = params.start - this.sync.getSyncTime();
+        const timeLeft = params.start - that.sync.getSyncTime();
         if(timeLeft > 0) {
           app.debug('play %s in %s s', audioType, timeLeft);
         } else {
@@ -199,30 +184,34 @@ class CalibrationClient extends app.clientSide.Performance {
         }
 
         // compensate delay and gain
-        this.synth.play( {
+        that.synth.play( {
           type: audioType,
-          start: params.start
-            - (typeof this.audio[this.audio.output].delay !== 'undefined'
-               ? this.audio[this.audio.output].delay : 0),
-          gain: 0
-            - (typeof this.audio[this.audio.output].gain !== 'undefined'
-               ? this.audio[this.audio.output].gain : 0),
+          start: params.start - that.audio.compensation.delay,
+          gain: -that.audio.compensation.gain,
           duration: duration
         } );
       }
     });
 
     app.client.receive('performance:client-calibration', (params) => {
-      this.restore(params);
+      that.set(params);
     });
 
   }
 
+  /**
+   * Start the performance module, and restore the calibration.
+   */
   start() {
     super.start();
-    this.restore();
+    this.load();
   }
 
+  /**
+   * Select the current view.
+   *
+   * @param {String} navigation
+   */
   navigationUpdate(navigation) {
     if(typeof navigation !== 'undefined') {
       this.navigation = navigation;
@@ -262,10 +251,6 @@ class CalibrationClient extends app.clientSide.Performance {
     }
 
     if(this.navigation === 'validation') {
-      const ready = (this.syncStatus === 'sync'
-                     && this.networkStatus === 'online');
-      app.dom.updateGlobalValidationElement(this.view, false, ready);
-
       this.audio.type = 'click';
       this.display.validationElement.style.display = '';
     } else {
@@ -287,90 +272,45 @@ class CalibrationClient extends app.clientSide.Performance {
    * @function CalibrationClient~save
    */
   save() {
-    const params = {};
-    for(let o of this.audio.outputs) {
-      if(typeof this.audio[o] !== 'undefined') {
-        if(typeof params.audio === 'undefined') {
-          params.audio = {};
-        }
-        params.audio[o] = this.audio[o];
-      }
-    }
-    params.network = this.network;
-
-    const keys = ['audio', 'network'];
-    if(app.localStorage.enabled) {
-      try {
-        for(let k of keys) {
-          if(typeof params[k] !== 'undefined') {
-            window.localStorage[app.localStorage.prefix + k]
-              = JSON.stringify(params[k]);
-          }
-        }
-      } catch (error) {
-        console.log(error.message);
-        app.localStorage.enabled = false;
-      }
-    }
-
-    app.client.send('performance:client-calibration-store', {
-      userAgent: this.userAgent,
-      audio: params.audio,
-      network: params.network
+    this.calibration.set( {
+      audio: this.audio.compensation,
+      network: this.network
     } );
+    this.calibration.save();
   }
 
   /**
-   * Restore calibration from local storage, or from server.
+   * Set calibration with given values.
    *
-   * Do not restore network statistics (which are stored).
+   * Do not set network statistics (even when provided).
    *
-   * @function CalibrationClient~restore
-   * @param {Object} restoreParams if undefined, get the values from
-   * the local storage, or the server.
-   * @param {Object} restoreParams.audio
-   * @param {Object} restoreParams.audio.internal internal speaker
-   * @param {Object} restoreParams.audio.internal.delay in seconds
-   * @param {Object} restoreParams.audio.internal.gain in dB
-   * @param {Object} restoreParams.audio.external external audio output
-   * @param {Object} restoreParams.audio.external.delay in seconds
-   * @param {Object} restoreParams.audio.external.gain in dB
-   *
+   * @function CalibrationClient~set
+   * @param {calibration} params
    */
-  restore(restoreParams) {
-    if(typeof restoreParams !== 'undefined') {
-      // actually restore from given parameters
+  set(params) {
+    if(typeof params !== 'undefined'
+       && typeof params.audio !== 'undefined') {
+      this.audio.compensation = params.audio;
+      this.display.delayCalibration.update();
+      this.display.gainCalibration.update();
+    }
+  }
 
-      if(typeof restoreParams.audio !== 'undefined') {
-        for(let o of this.audio.outputs) {
-          if(restoreParams.audio.hasOwnProperty(o) ) {
-            this.audio[o] = restoreParams.audio[o];
-          }
-        }
-        this.display.delayCalibration.update();
-        this.display.gainCalibration.update();
-      }
-    } else {
-      // get parameters from localStorage, or from server
 
-      let params = {};
-      // retrieve from local storage first
-      let localStorageUsed = false;
-      if(app.localStorage.enabled
-         && typeof window.localStorage[app.localStorage.prefix + 'audio']
-         !== 'undefined') {
-        localStorageUsed = true;
-        params.audio = JSON.parse(window.localStorage[app.localStorage.prefix + 'audio']);
+  /**
+   * Load previous calibration.
+   */
+  load() {
+    this.calibration.load();
+    this.set(this.calibration.get() );
+  }
 
-        this.restore(params);
-      }
-
-      if(!localStorageUsed) {
-        app.client.send('performance:client-calibration-request', {
-          userAgent: this.userAgent
-        });
-      }
-
+  calibrationUpdated() {
+    const update = this.calibration.get();
+    if(typeof update.audio !== 'undefined') {
+      this.audio.compensation = update.audio;
+      this.display.delayCalibration.update();
+      this.display.gainCalibration.update();
     }
   }
 }
@@ -382,14 +322,14 @@ app.init = function () {
     activateAudio: true
   });
 
-  app.sync = new app.clientSide.Sync();
-  app.performance = new CalibrationClient(app.sync);
+  app.performance = new CalibrationClientPerformance();
 
   // Start the scenario and link the modules
   app.client.start(
     app.client.serial(
       welcome,
-      app.sync, // init the sync process
+      app.performance.calibration, // calibration set-up
+      app.performance.sync, // init the sync process
       app.performance // when all of them are done, we launch the performance
     )
   );
