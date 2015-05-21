@@ -9,45 +9,16 @@ const port = process.env.PORT || 8888;
 const path = require('path');
 const dir = path.join(__dirname, '../../public');
 
-// Persistent data
-const fs = require('fs');
-const pjson = require('../../package.json'); // version
-const persistentPath = path.join(__dirname, '../../data');
-const persistentFile = path.join(persistentPath, 'web-audio-calibration.json');
-const persistentFileEncoding = 'utf8';
-let persistentData = {};
-
-try {
-  fs.mkdirSync(persistentPath);
-  console.log('Creating data directory: ' + persistentPath);
-} catch (error) {
-  if(error.code === 'EEXIST') {
-    console.log('Using existing data directory: ' + persistentPath);
-  }
-  else {
-    console.log('Error creating data directory: ' + persistentPath);
-  }
-}
-
-try {
-  const data = fs.readFileSync(persistentFile, persistentFileEncoding);
-  persistentData = JSON.parse(data);
-} catch (error) {
-  if(error.code === 'ENOENT') {
-    console.log('Creating new persistent file: ' + persistentFile);
-  } else {
-    console.log('Error while reading persistent file: ' + error);
-  }
-}
-persistentData[pjson.name + '.version'] = pjson.version;
-
-
 // Soundworks library
 const serverSide = require('soundworks/server');
 const server = serverSide.server;
+const calibration = new serverSide.Calibration( {
+  persistent: {
+    path: path.join(__dirname, '../../data'),
+    file: 'calibration.json'
+  }
+});
 const sync = new serverSide.Sync();
-
-const string = require('../common/string');
 
 class CalibrationServerPerformance extends serverSide.Performance {
   constructor() {
@@ -56,16 +27,6 @@ class CalibrationServerPerformance extends serverSide.Performance {
     // static strings
     CalibrationServerPerformance.serverParametersName =
       'performance:server-params';
-    CalibrationServerPerformance.clientParametersName =
-      'performance:client-calibration';
-    CalibrationServerPerformance.clientParametersStoreName =
-      CalibrationServerPerformance.clientParametersName
-      + '-store';
-    CalibrationServerPerformance.clientParametersRequestName =
-      CalibrationServerPerformance.clientParametersName
-      + '-request';
-
-    this.levenshtein = new string.Levenshtein();
 
     // click
     this.active = true; // run by default
@@ -133,115 +94,6 @@ class CalibrationServerPerformance extends serverSide.Performance {
                        this.click();
                      }
                    } );
-
-    client.receive(
-      CalibrationServerPerformance.clientParametersStoreName,
-      (params) => {
-        debug(CalibrationServerPerformance.clientParametersStoreName,
-              params);
-        if(typeof params !== 'undefined'
-           && typeof params.userAgent !== 'undefined') {
-          const date = new Date();
-          let writeFile = false;
-
-          if(typeof params.audio !== 'undefined')
-          {
-            writeFile = true;
-            if(typeof persistentData[params.userAgent] === 'undefined') {
-              persistentData[params.userAgent] = {};
-            }
-
-            if(typeof persistentData[params.userAgent].audio === 'undefined') {
-              persistentData[params.userAgent].audio = {};
-            }
-            // outputs = ['internal', 'external']
-            for(let output in params.audio) {
-              if(params.audio.hasOwnProperty(output) ) {
-
-                if(typeof persistentData[params.userAgent].audio[output]
-                   === 'undefined') {
-                  persistentData[params.userAgent].audio[output] = [];
-                }
-
-                persistentData[params.userAgent].audio[output]
-                  .push([date.toISOString(), params.audio[output] ] );
-
-                console.log(date.toISOString());
-                console.log(params.userAgent);
-                console.log(params.audio.output);
-              }
-            }
-          }
-
-          if(typeof params.network !== 'undefined')
-          {
-            writeFile = true;
-            if(typeof persistentData[params.userAgent] === 'undefined') {
-              persistentData[params.userAgent] = {};
-            }
-
-            if(typeof persistentData[params.userAgent].network === 'undefined') {
-              persistentData[params.userAgent].network = [];
-            }
-            persistentData[params.userAgent].network
-              .push([date.toISOString(), params.network]);
-
-            console.log(date.toISOString());
-            console.log(params.userAgent);
-            console.log(params.network);
-          }
-
-          if(writeFile) {
-            fs.writeFile(persistentFile, JSON.stringify(persistentData) );
-          }
-        }
-      });
-
-    client.receive(
-      CalibrationServerPerformance.clientParametersRequestName,
-      (params) => {
-
-        if(typeof persistentData !== 'undefined'
-           && typeof params !== 'undefined'
-           && typeof params.userAgent !== 'undefined') {
-          const closest = this.levenshtein.closestKey(persistentData,
-                                                      params.userAgent);
-
-          debug('%s -> %s (%s)',
-                params.userAgent, closest.key, closest.distance);
-          // upper bound on closest.distance?
-          const data = persistentData[closest.key];
-          if(typeof data !== 'undefined') {
-            let calibration = {};
-            let sendCalibration = false;
-            if(typeof data.audio !== 'undefined') {
-              // outputs = ['internal', 'external']
-              for(let output in data.audio) {
-                if(data.audio.hasOwnProperty(output) ) {
-                  sendCalibration = true;
-                  if(typeof calibration.audio === 'undefined') {
-                    calibration.audio = {};
-                  }
-                  // retrieve last value
-                  calibration.audio[output]
-                    = data.audio[output].slice(-1)[0][1];
-                }
-              }
-            }
-
-            if(typeof data.network !== 'undefined') {
-              sendCalibration = true;
-              calibration.network = data.network.slice(-1)[0][1];
-            }
-
-            if(sendCalibration) {
-              client.send(CalibrationServerPerformance.clientParametersName,
-                          calibration);
-            }
-          }
-        }
-      } );
-
   }
 
   click() {
@@ -300,4 +152,4 @@ const performance = new CalibrationServerPerformance();
 debug('launch server on port %s', port);
 
 server.start(app, dir, port);
-server.map('player', sync, performance);
+server.map('player', calibration, sync, performance);

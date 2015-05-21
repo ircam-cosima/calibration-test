@@ -415,16 +415,6 @@ dom.createGlobalValidationElement = function (params) {
   return element;
 };
 
-dom.updateGlobalValidationElement = function (origin, done = false, ready = false) {
-  const element = origin.querySelector('.global-validation');
-  const validation = element.querySelector('.validate');
-
-  validation.style.display = (ready && !done ? '' : 'none');
-
-  const text = element.querySelector('.done');
-  text.style.display = (done ? '' : 'none');
-};
-
 dom.createRestoreElement = function (params) {
   const origin = (typeof params.DOMOrigin !== 'undefined'
                   ? params.DOMOrigin : document.body);
