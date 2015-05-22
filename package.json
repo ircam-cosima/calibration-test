@@ -13,7 +13,7 @@
     "ejs": "^2.3.1",
     "express": "^4.8.6",
     "socket.io": "1.1.0",
-    "soundworks": "collective-soundworks/soundworks#2d7e4d6f7ba0c7689f3a2ade5b20c100acb45936"
+    "soundworks": "collective-soundworks/soundworks#f7a137f800e9831fb799af116bbf396f5cfb8406"
   },
   "devDependencies": {
     "browserify": "~5.11.0",
