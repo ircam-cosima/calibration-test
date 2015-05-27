@@ -120,6 +120,7 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
       text: 'Validate calibration',
       validation: () => {
         that.save();
+        app.dom.updateGlobalValidationElement(this.view, true);
       }
     } );
 
@@ -252,6 +253,7 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
 
     if(this.navigation === 'validation') {
       this.audio.type = 'click';
+      app.dom.updateGlobalValidationElement(this.view, false);
       this.display.validationElement.style.display = '';
     } else {
       this.display.validationElement.style.display = 'none';
