@@ -1,0 +1,53 @@
+{
+    "Mozilla/5.0 (Linux; Android 4.2.2; STARADDICT III Build/JDQ39) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.111 Mobile Safari/537.36": {
+        "audio": [
+            [
+                "2015-05-27T16:52:57.892Z",
+                {
+                    "delay": 0.16,
+                    "gain": -6
+                }
+            ]
+        ],
+        "network": [
+            [
+                "2015-05-27T16:52:57.892Z",
+                {
+                    "delay": 0.017066328864331126,
+                    "delayMax": 0.08533166431595873
+                }
+            ]
+        ]
+    },
+    "Mozilla/5.0 (iPod touch; CPU iPhone OS 8_3 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12F69 Safari/600.1.4": {
+        "audio": [
+            [
+                "2015-05-27T16:14:55.020Z",
+                {
+                    "delay": 0,
+                    "gain": -10
+                }
+            ]
+        ],
+        "network": [
+            [
+                "2015-05-27T16:14:55.020Z",
+                {
+                    "delay": 0.005222950895949907,
+                    "delayMax": 0.005803410652447383
+                }
+            ]
+        ]
+    },
+    "default": {
+        "audio": [
+            [
+                "default",
+                {
+                    "delay": 0,
+                    "gain": 0
+                }
+            ]
+        ]
+    }
+}

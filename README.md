@@ -49,7 +49,8 @@ Connect both the reference device, and the device to calibrate, to the
 server, preferably on a local network (wifi or ethernet). A
 synchronisation process will start on both of the devices. Wait for it
 to complete. At this point, the sound must be stable, while not
-necessarily synchronous.
+necessarily synchronous. Put the volume to the maximum on both
+devices.
 
 Then, go to the `delay` page, on both devices. The sound will turn
 into a click, for precise timing. You can check that the reference
@@ -70,9 +71,10 @@ there might be some proposed value, that you must check, and
 adjust. Please remember to adjust the gain compensation *only on the
 device to calibrate*. When both devices are at the same distance of
 your ears, with the speakers directly pointing to the ears, you must
-hear them with the same energy. The characteristics of the sound
-devices might differ a lot, but you should try to concentrate on the
-relative energy.
+hear them with the same energy. You may want to use the `Ø` button to
+de-phase the reference, so as to listen to the devices one after the
+other.  The characteristics of the sound devices might differ a lot,
+but you should try to concentrate on the relative energy.
 
 Then, please go to the `validation` page, and save your newly
 calibrated device. This will update the file
