@@ -4,7 +4,7 @@
     "Jean-Phillipe.Lambert"
   ],
   "description": "Audio calibration across devices",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "scripts": {
     "start": "node --harmony src/server/index.js"
   },
@@ -13,7 +13,7 @@
     "ejs": "^2.3.1",
     "express": "^4.8.6",
     "socket.io": "1.1.0",
-    "soundworks": "collective-soundworks/soundworks#f7a137f800e9831fb799af116bbf396f5cfb8406"
+    "soundworks": "collective-soundworks/soundworks#59a1915f1d056cf3270d7f74ae62abd4e9d05639"
   },
   "devDependencies": {
     "browserify": "~5.11.0",
