@@ -47,6 +47,7 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
 
     this.audio = {};
     this.audio.active = true;
+    that.audio.dephase = false;
     this.audio.type = 'clack';
     this.audio.compensation = {
       delay: 0,
@@ -65,6 +66,14 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
       text: 'Audio',
       setter: (value) => { that.audio.active = value; },
       getter: () => { return that.audio.active; }
+    } );
+
+    this.display.audio.dephase = new app.dom.Toggle( {
+      DOMOrigin: this.view,
+      DOMClass: 'audio-dephase',
+      text: 'Ø',
+      setter: (value) => { that.audio.dephase = value; },
+      getter: () => { return that.audio.dephase; }
     } );
 
     this.display.syncMinimalElement = app.dom.createSyncMinimalElement(this.view);
@@ -187,7 +196,8 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
         // compensate delay and gain
         that.synth.play( {
           type: audioType,
-          start: params.start - that.audio.compensation.delay,
+          start: params.start - that.audio.compensation.delay
+            + (that.audio.dephase ? 0.5 : 0),
           gain: -that.audio.compensation.gain,
           duration: duration
         } );
