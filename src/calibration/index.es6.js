@@ -11,18 +11,6 @@ app.client = app.clientSide.client;
 app.audio = require('../common/audio');
 app.dom = require('./dom');
 
-app.localStorage = {};
-app.localStorage.prefix = 'soundworks-calibration.';
-app.localStorage.enabled = typeof window.localStorage !== 'undefined';
-if(app.localStorage.enabled) {
-  try {
-    window.localStorage[app.localStorage.prefix + 'storage-enabled'] = true;
-    window.localStorage.removeItem(app.localStorage.prefix + 'storage-enabled');
-  } catch (error) {
-    app.localStorage.enabled = false;
-  }
-}
-
 // Initialise the client with its type
 // ('player' clients connect via the root URL)
 app.client.init('player');
