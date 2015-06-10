@@ -60,7 +60,7 @@ audio.generateNoiseBuffer = function () {
   for(let c = 0; c < channelCount; ++c) {
     let data = buffer.getChannelData(c);
     for(let i = 0; i < length; ++i) {
-      data[i] = amplitude * (Math.random() * 2 + 1);
+      data[i] = amplitude * (Math.random() * 2 - 1);
     }
   }
   return buffer;
