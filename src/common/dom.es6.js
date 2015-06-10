@@ -21,8 +21,10 @@ dom.Text = class {
     DOMOrigin.appendChild(this.element);
   }
 
-  update() {
-    if(typeof this.getter !== 'undefined' && this.getter() ) {
+  update(text) {
+    if(typeof text !== 'undefined') {
+      this.element.innerHTML = text;
+    } else if(typeof this.getter !== 'undefined' && this.getter() ) {
       this.element.innerHTML = this.getter();
     }
   }
@@ -47,9 +49,11 @@ dom.Button = class {
 
     if(typeof this.setter !== 'undefined') {
       const that = this; // problem with gulp-es6-transpiler 1.0.1
-      this.element.onclick = () => {
-        that.setter();
-      };
+      this.element.onclick = this.element.ontouchstart
+        = (event) => {
+          event.preventDefault();
+          that.setter();
+        };
     }
 
     const DOMOrigin = (typeof params.DOMOrigin !== 'undefined'
@@ -67,8 +71,10 @@ dom.Toggle = class extends dom.Button {
     this.element.classList.add('toggle');
     if(typeof this.setter !== 'undefined') {
       const that = this; // problem with gulp-es6-transpiler 1.0.1
-      this.element.onclick = () => {
-        that.setter(that.element.classList.toggle('selected') );
+      this.element.onclick = this.element.ontouchstart
+        = (event) => {
+          event.preventDefault();
+          that.setter(that.element.classList.toggle('selected') );
       };
     }
 
@@ -173,25 +179,14 @@ dom.ExclusiveToggles = class {
       this.element.classList.add(params.DOMClass);
     }
 
-    const that = this; // problem with gulp-es6-transpiler 1.0.1
-    for(let o of params.options) {
-      const option = document.createElement('button');
-      option.textContent = o;
-      option.onclick = () => { // eslint-disable-line no-loop-func
-        if(typeof that.setter !== 'undefined') {
-          that.setter(option.textContent);
-        }
-        that.update();
-      };
-
-      this.element.appendChild(option);
-    }
-
     if(typeof params.value !== 'undefined'
        && typeof this.setter !== 'undefined') {
       this.setter(params.value);
     }
-    this.update();
+
+    if(typeof params.options !== 'undefined') {
+      this.setOptions(params.options);
+    }
 
     const DOMOrigin = (typeof params.DOMOrigin !== 'undefined'
                        ? params.DOMOrigin : document.body);
@@ -209,6 +204,32 @@ dom.ExclusiveToggles = class {
         buttons[b].classList.remove('selected');
       }
     }
+  }
+
+  setOptions(options = {}) {
+    // old is a NodeList, which is not iterable
+    const old = this.element.querySelectorAll('button');
+    for(let o = 0; o < old.length; ++o) {
+      this.element.removeChild(old[o]);
+    }
+
+    const that = this; // problem with gulp-es6-transpiler 1.0.1
+    for(let o of options) {
+      const option = document.createElement('button');
+      option.textContent = o;
+      option.onclick = option.ontouchstart
+        = (event) => { // eslint-disable-line no-loop-func
+          event.preventDefault();
+          if(typeof that.setter !== 'undefined') {
+            that.setter(option.textContent);
+          }
+          that.update();
+        };
+
+      this.element.appendChild(option);
+    }
+
+    this.update();
   }
 
 };
