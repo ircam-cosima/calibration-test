@@ -65,6 +65,9 @@ class CalibrationServerPerformance extends serverSide.Performance {
     if(typeof params.number !== 'undefined') {
       this.number = params.number;
     }
+
+    // re-broadcast
+    this.emitServerParameters();
   }
 
   emitServerParameters(client) {
@@ -72,7 +75,7 @@ class CalibrationServerPerformance extends serverSide.Performance {
     const params = this.getServerParameters();
 
     if(typeof client === 'undefined') {
-      server.broadcast('player', name, params);
+      server.broadcast('control', name, params);
     } else {
       client.send(name, params);
     }
@@ -81,7 +84,9 @@ class CalibrationServerPerformance extends serverSide.Performance {
   enter(client) {
     super.enter(client);
 
-    this.emitServerParameters(client);
+    if(client.type === 'control') {
+      this.emitServerParameters(client);
+    }
 
     client.receive(CalibrationServerPerformance.serverParametersName,
                    (params) => {
@@ -136,7 +141,6 @@ class CalibrationServerPerformance extends serverSide.Performance {
 
     }
 
-    this.emitServerParameters();
   }
 
   clickEmit(nextClick) {
