@@ -1,0 +1,53 @@
+@import '01-reset';
+@import '02-fonts';
+@import '03-colors';
+@import '04-general';
+@import '05-checkin';
+@import '07-loader';
+
+$front-color: rgba(255, 255, 255, .9);
+$back-color: rgba(0, 0, 0, 1);
+$active-color: rgba(255, 0, 0, 1);
+$bad-color: rgba(255, 0, 0, 1);
+$validate-color: rgba(255, 0, 0, 1);
+$frame-color: rgba(255, 255, 255, .3);
+
+@mixin display-inline-flex {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+}
+
+@mixin appearance-none {
+   -webkit-appearance: none;
+   -moz-appearance: none;
+   appearance: none;
+}
+
+@mixin border-radius-0 {
+  -webkit-border-radius: 0;
+  -moz-border-radius: 0;
+  border-radius: 0;
+}
+
+button,
+select,
+option {
+  @include appearance-none;
+  @include border-radius-0;
+  background-color: $back-color;
+  border: 1px solid $front-color;
+  color: $front-color;
+  margin: .1em;
+  text-align: center;
+}
+
+button.selected {
+  background-color: invert($back-color);
+  color: invert($front-color);
+}
+
+select:active,
+button:active {
+  border-color: $active-color;
+  color: $active-color;
+}

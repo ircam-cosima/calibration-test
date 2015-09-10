@@ -24,10 +24,6 @@ class CalibrationServerPerformance extends serverSide.Performance {
   constructor() {
     super();
 
-    // static strings
-    CalibrationServerPerformance.serverParametersName =
-      'performance:server-params';
-
     // click
     this.active = true; // run by default
     this.lookahead = 1; // second
@@ -41,6 +37,14 @@ class CalibrationServerPerformance extends serverSide.Performance {
 
     // run by default
     this.click();
+
+    // 'auto' is 'click' for delay tab, and 'clack' for info tab
+    // click is more precise, but of lower energy than clack
+    this.clickTypeOptions = [ 'auto',  'click',  'clack' ];
+    this.clickType = 'auto';
+
+    // for testing purposes
+    this.syncActive = true;
   }
 
   getServerParameters() {
@@ -48,7 +52,9 @@ class CalibrationServerPerformance extends serverSide.Performance {
       active: this.active,
       lookahead: this.lookahead,
       period: this.period,
-      number: this.number
+      number: this.number,
+      click: this.clickType,
+      sync: this.syncActive
     };
   }
 
@@ -65,14 +71,25 @@ class CalibrationServerPerformance extends serverSide.Performance {
     if(typeof params.number !== 'undefined') {
       this.number = params.number;
     }
+
+    if(typeof params.click !== 'undefined') {
+      this.clickType = params.click;
+    }
+    if(typeof params.sync !== 'undefined') {
+      this.syncActive = params.sync;
+    }
+
+    // re-broadcast
+    this.emitServerParameters();
   }
 
   emitServerParameters(client) {
-    const name = CalibrationServerPerformance.serverParametersName;
+    const name = 'calibration:parameters';
     const params = this.getServerParameters();
 
     if(typeof client === 'undefined') {
-      server.broadcast('player', name, params);
+      server.broadcast('calibration-control', name, params);
+      server.broadcast('calibration', name, params); // sync
     } else {
       client.send(name, params);
     }
@@ -83,7 +100,7 @@ class CalibrationServerPerformance extends serverSide.Performance {
 
     this.emitServerParameters(client);
 
-    client.receive(CalibrationServerPerformance.serverParametersName,
+    client.receive('calibration:parameters',
                    (params) => {
                      const activate = !this.active && params.active;
                      this.setServerParameters(params);
@@ -94,6 +111,12 @@ class CalibrationServerPerformance extends serverSide.Performance {
                        this.click();
                      }
                    } );
+
+    client.receive('calibration:click-type-options-request', () => {
+      client.send('calibration:click-type-options', this.clickTypeOptions);
+    });
+
+
   }
 
   click() {
@@ -136,11 +159,10 @@ class CalibrationServerPerformance extends serverSide.Performance {
 
     }
 
-    this.emitServerParameters();
   }
 
   clickEmit(nextClick) {
-    server.broadcast('player', 'performance:click', {
+    server.broadcast('calibration', 'calibration:click', {
       start: nextClick
     });
   }
@@ -149,7 +171,13 @@ class CalibrationServerPerformance extends serverSide.Performance {
 
 const performance = new CalibrationServerPerformance();
 
+// default redirection
+app.get('/', function(req, res){
+  res.redirect('/calibration');
+});
+
 debug('launch server on port %s', port);
 
 server.start(app, dir, port);
-server.map('player', calibration, sync, performance);
+server.map('calibration', calibration, sync, performance);
+server.map('calibration-control', calibration, sync, performance);

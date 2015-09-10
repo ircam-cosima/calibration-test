@@ -13,7 +13,7 @@ app.dom = require('./dom');
 
 // Initialise the client with its type
 // ('player' clients connect via the root URL)
-app.client.init('player');
+app.client.init('calibration');
 
 class CalibrationClientPerformance extends app.clientSide.Performance {
   /**
@@ -29,13 +29,16 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
     });
     this.sync = new app.clientSide.Sync();
     this.syncStatus = 'new';
+    this.syncActive = true;
+
     this.synth = new app.audio.Synth(this.sync);
 
     this.userAgent = app.platform.ua;
 
     this.audio = {};
     this.audio.active = true;
-    that.audio.dephase = false;
+    this.audio.dephase = false;
+    this.audio.clickType = 'auto';
     this.audio.type = 'clack';
     this.audio.compensation = {
       delay: 0,
@@ -166,7 +169,7 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
       }
     });
 
-    app.client.receive('performance:click', (params) => {
+    app.client.receive('calibration:click', (params) => {
       if( (that.syncStatus === 'sync' || that.syncStatus === 'training')
           && that.audio.active && typeof params !== 'undefined') {
 
@@ -192,7 +195,7 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
       }
     });
 
-    app.client.receive('performance:client-calibration', (params) => {
+    app.client.receive('calibration:parameters', (params) => {
       that.set(params);
     });
 
@@ -229,14 +232,22 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
     }
 
     if(this.navigation === 'info') {
-      this.audio.type = 'clack';
+      if(this.audio.clickType === 'auto') {
+        this.audio.type = 'clack';
+      } else {
+        this.audio.type = this.audio.clickType;
+      }
       this.display.infoElement.style.display = '';
     } else {
       this.display.infoElement.style.display = 'none';
     }
 
     if(this.navigation === 'delay') {
-      this.audio.type = 'click';
+      if(this.audio.clickType === 'auto') {
+        this.audio.type = 'click';
+      } else {
+        this.audio.type = this.audio.clickType;
+      }
       this.display.delayCalibration.element.style.display = '';
     } else {
       this.display.delayCalibration.element.style.display = 'none';
@@ -250,7 +261,12 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
     }
 
     if(this.navigation === 'validation') {
-      this.audio.type = 'click';
+      if(this.audio.clickType === 'auto') {
+        this.audio.type = 'click';
+      } else {
+        this.audio.type = this.audio.clickType;
+      }
+      this.display.infoElement.style.display = '';
       app.dom.updateGlobalValidationElement(this.view, false);
       this.display.validationElement.style.display = '';
     } else {
@@ -258,7 +274,12 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
     }
 
     if(this.navigation === 'restore') {
-      this.audio.type = 'clack';
+      if(this.audio.clickType === 'auto') {
+        this.audio.type = 'clack';
+      } else {
+        this.audio.type = this.audio.clickType;
+      }
+      this.display.infoElement.style.display = '';
       this.display.restoreElement.style.display = '';
     } else {
       this.display.restoreElement.style.display = 'none';
@@ -288,12 +309,38 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
    * @param {calibration} params
    */
   set(params) {
-    if(typeof params !== 'undefined'
-       && typeof params.audio !== 'undefined') {
-      this.audio.compensation = params.audio;
-      this.display.delayCalibration.update();
-      this.display.gainCalibration.update();
-    }
+    if(typeof params !== 'undefined') {
+      if(typeof params.audio !== 'undefined') {
+        this.audio.compensation = params.audio;
+        this.display.delayCalibration.update();
+        this.display.gainCalibration.update();
+      } // compensation
+
+      if(typeof params.click !== 'undefined') {
+        this.audio.clickType = params.click;
+        // actual click type depends on tab
+        this.navigationUpdate();
+      }
+
+      if(typeof params.sync !== 'undefined') {
+        if(this.syncActive !== params.sync) {
+          app.debug('change sync: %s -> %s', this.syncActive, params.sync);
+          if(params.sync) {
+            this.sync.sync.start(
+              app.client.send, app.client.receive,
+              (status, report) => {
+                this.sync.syncStatusReport(status, report);
+              } );
+            this.syncActive = true;
+          } else {
+            clearTimeout(this.sync.sync.timeoutId);
+            this.syncActive = false;
+          }
+        }
+      } // sync
+
+    } // params
+
   }
 
 
