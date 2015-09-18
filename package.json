@@ -4,7 +4,7 @@
     "Jean-Phillipe.Lambert"
   ],
   "description": "Audio calibration across devices",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "scripts": {
     "start": "node --harmony src/server/index.js"
   },
