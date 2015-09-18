@@ -266,7 +266,6 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
       } else {
         this.audio.type = this.audio.clickType;
       }
-      this.display.infoElement.style.display = '';
       app.dom.updateGlobalValidationElement(this.view, false);
       this.display.validationElement.style.display = '';
     } else {
@@ -279,7 +278,6 @@ class CalibrationClientPerformance extends app.clientSide.Performance {
       } else {
         this.audio.type = this.audio.clickType;
       }
-      this.display.infoElement.style.display = '';
       this.display.restoreElement.style.display = '';
     } else {
       this.display.restoreElement.style.display = 'none';
