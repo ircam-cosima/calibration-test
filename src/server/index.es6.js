@@ -10,6 +10,14 @@ const path = require('path');
 const dir = path.join(__dirname, '../../public');
 
 // Soundworks library
+const serverOptions = {
+  socketIO: {
+  transports: ['websocket'],
+  pingTimeout: 60000,
+  pingInterval: 50000
+  }
+};
+
 const serverSide = require('soundworks/server');
 const server = serverSide.server;
 const calibration = new serverSide.Calibration( {
@@ -178,6 +186,6 @@ app.get('/', function(req, res){
 
 debug('launch server on port %s', port);
 
-server.start(app, dir, port);
+server.start(app, dir, port, serverOptions);
 server.map('calibration', calibration, sync, performance);
 server.map('calibration-control', calibration, sync, performance);
