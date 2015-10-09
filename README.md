@@ -9,7 +9,7 @@ user-agent does not need to be exact, as the closest is selected.
 
 Please note that the audio clocks are synchronised before the
 calibration. This is accurate if the duration of the measure is long
-enough. Depending on the device, 2 to 5 minutes are necessary for
+enough. Depending on the device, 2 to 10 minutes are necessary for
 stabilisation.
 
 There is a latency added by the device, which is unknown, and
@@ -19,7 +19,7 @@ estimate here.
 Caveat: The relative phase of several audio clocks are undetermined
 in-between the audio clock ticks. Their periods are as large as an
 audio buffer size: depending on the device, this usually ranges from
-64 to 4096 samples (which translates to 6 to 85 ms at 44100 and 48000
+256 to 4096 samples (which translates to 5 to 93 ms at 48000 and 44100
 Hz).
 
 ##Please Contribute!##
@@ -41,16 +41,16 @@ the port to 8080:
     PORT=8080 gulp
 
 In order to calibrate a device, one needs to compare it with an other
-device, which is *already* calibrated, and serves as a
-reference. Please look into the [data](./data)
-directory for the know user-agents.
+device, which is *already* calibrated, and serves as a reference. Please
+look into the [data](./data) directory for the know user-agents. It is way
+better to use a local browser as a reference, or at least a device with a
+small audio buffer size.
 
 Connect both the reference device, and the device to calibrate, to the
-server, preferably on a local network (wifi or ethernet). A
-synchronisation process will start on both of the devices. Wait for it
-to complete. At this point, the sound must be stable, while not
-necessarily synchronous. Put the volume to the maximum on both
-devices.
+server, on a local network (wifi or ethernet). A synchronisation process
+will start on both of the devices. Wait for it to complete. At this point,
+the sound must be stable, while not necessarily synchronous. Put the volume
+to the maximum on both devices.
 
 Then, go to the `delay` page, on both devices. The sound will turn
 into a click, for precise timing. You can check that the reference
@@ -80,5 +80,5 @@ Then, please go to the `validation` page, and save your newly
 calibrated device. This will update the file
 [data/calibration.json](data/calibration.json). Please make a pull
 commit with it. Your newly calibrated device can now serve as a
-reference also.
+reference also, providing it is stable over time.
 
