@@ -22,7 +22,7 @@ audio buffer size: depending on the device, this usually ranges from
 256 to 4096 samples (which translates to 5 to 93 ms at 48000 and 44100
 Hz).
 
-##Please Contribute!##
+##How to use it?##
 
 If you just cloned or updated the repository, you need to install the
 dependencies with
@@ -42,7 +42,7 @@ the port to 8080:
 
 In order to calibrate a device, one needs to compare it with an other
 device, which is *already* calibrated, and serves as a reference. Please
-look into the [data](./data) directory for the know user-agents. It is way
+look into the [data](./data) directory for the known user-agents. It is way
 better to use a local browser as a reference, or at least a device with a
 small audio buffer size.
 
