@@ -5,7 +5,7 @@
   ],
   "description": "Audio calibration across devices",
   "license": "BSD-3-Clause",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "repository": {
     "type": "git",
     "url": "https://github.com/collective-soundworks/soundworks-calibration"

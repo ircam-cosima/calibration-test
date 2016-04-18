@@ -47,10 +47,12 @@ better to use a local browser as a reference, or at least a device with a
 small audio buffer size.
 
 Connect both the reference device, and the device to calibrate, to the
-server, on a local network (wifi or ethernet). A synchronisation process
-will start on both of the devices. Wait for it to complete. At this point,
-the sound must be stable, while not necessarily synchronous. Put the volume
-to the maximum on both devices.
+server, on a local network (wifi or ethernet). Be sure to quit any running
+process on any client device, including the browser. The, restart the
+browser, and *do reload* the page, to avoid any problem with the cache. A
+synchronisation process will start on both of the devices. Wait for it to
+complete. At this point, the sound must be stable, while not necessarily
+synchronous. Put the volume to the maximum on both devices.
 
 Then, go to the `delay` page, on both devices. The sound will turn
 into a click, for precise timing. You can check that the reference
