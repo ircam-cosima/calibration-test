@@ -24,14 +24,16 @@ Hz).
 
 ##How to use it?##
 
-If you just cloned or updated the repository, you need to install the
-dependencies with
+You need [Node.js]. Install the dependencies and build:
 
-    npm install
-
-Then, you need to start the server with:
-
-    gulp
+``` shell
+npm install ;
+cd node_modules/soundworks ;
+npm install ;
+./node_modules/.bin/gulp ;
+cd ../.. ;
+./node_modules/.bin/gulp
+```
 
 The server will listen to port 8888. Clients connect to
 <http://localhost:8888/> for calibration. You can modify the port used
@@ -84,3 +86,4 @@ calibrated device. This will update the file
 commit with it. Your newly calibrated device can now serve as a
 reference also, providing it is stable over time.
 
+[Node.js]: https://nodejs.org
