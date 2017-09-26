@@ -1,4 +1,4 @@
-#Audio calibration (latency and gain) for Web Audio#
+# Audio calibration (latency and gain) for Web Audio #
 
 This application permits to manually set a latency, and gain, in a
 browser, and to store this information on a server, and locally. The
@@ -22,7 +22,7 @@ audio buffer size: depending on the device, this usually ranges from
 256 to 4096 samples (which translates to 5 to 93 ms at 48000 and 44100
 Hz).
 
-##How to use it?##
+## How to use it? ##
 
 You need [Node.js]. Install the dependencies and build:
 
